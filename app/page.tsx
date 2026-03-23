@@ -101,7 +101,7 @@ export default function Home() {
     setBibleText(null);
     setBibleLoading(true);
     try {
-      const ref = keyRef ?? fullRef;
+      const ref = fullRef;
       const res = await fetch(`/api/bible?ref=${encodeURIComponent(ref)}`);
       const data = await res.json();
       setBibleText(data);
