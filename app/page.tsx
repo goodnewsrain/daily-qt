@@ -55,7 +55,7 @@ function BreathingPrayer({ onClose }: { onClose: () => void }) {
     utter.volume = 1.0;
     // Prefer a Korean voice if available
     const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => v.lang.startsWith("ko"));
+    const koVoice = voices.find(v => v.name === "Yuna") ?? voices.find(v => v.lang.startsWith("ko"));
     if (koVoice) utter.voice = koVoice;
     window.speechSynthesis.speak(utter);
     return () => { window.speechSynthesis.cancel(); };
@@ -70,7 +70,7 @@ function BreathingPrayer({ onClose }: { onClose: () => void }) {
     utter.rate  = 0.78;
     utter.pitch = 0.95;
     const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => v.lang.startsWith("ko"));
+    const koVoice = voices.find(v => v.name === "Yuna") ?? voices.find(v => v.lang.startsWith("ko"));
     if (koVoice) utter.voice = koVoice;
     window.speechSynthesis.speak(utter);
   }, [done]);
