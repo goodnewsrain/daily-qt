@@ -11,8 +11,8 @@ import ShareCard from "@/components/ShareCard";
 import HistoryCalendar from "@/components/HistoryCalendar";
 import type { NewsItem, NewsResult } from "@/app/api/news/route";
 import {
-  BookOpen, PenLine, History, Wind,
-  Share2, Download, Save, ExternalLink, Newspaper, Loader2, ChevronDown,
+  BookOpen, PenLine, History, Wind, MessageSquare,
+  Share2, Download, Save, ExternalLink, Newspaper, Loader2, ChevronDown, X, Send,
 } from "lucide-react";
 
 type Tab = "today" | "history";
@@ -187,6 +187,107 @@ function BreathingPrayer({ onClose }: { onClose: () => void }) {
 
 // ── News block ────────────────────────────────────────────────────────────────
 
+// ── Feedback Modal ────────────────────────────────────────────────────────────
+
+function FeedbackModal({ onClose }: { onClose: () => void }) {
+  const [name, setName]       = useState("");
+  const [email, setEmail]     = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus]   = useState<"idle" | "sending" | "done" | "error">("idle");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("sending");
+    try {
+      const res = await fetch("https://formspree.io/f/mykbzwdp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+      setStatus(res.ok ? "done" : "error");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm px-4 pb-6">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-blue-600" />
+            <h2 className="text-sm font-semibold text-stone-800">의견 보내기</h2>
+          </div>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {status === "done" ? (
+          <div className="px-5 py-10 text-center space-y-2">
+            <p className="text-2xl">🙏</p>
+            <p className="text-sm font-semibold text-stone-700">의견을 보내주셔서 감사합니다!</p>
+            <p className="text-xs text-stone-400">소중한 의견을 검토하겠습니다.</p>
+            <button onClick={onClose} className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-full text-sm font-medium">
+              닫기
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="px-5 py-4 space-y-3">
+            <div>
+              <label className="text-xs font-medium text-stone-500 mb-1 block">이름</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="이름 (선택)"
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-700 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-stone-500 mb-1 block">이메일</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="답장을 원하시면 이메일 입력 (선택)"
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-700 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-stone-500 mb-1 block">내용 <span className="text-red-400">*</span></label>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder="수정·보완 의견을 자유롭게 적어주세요..."
+                rows={4}
+                required
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-700 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+              />
+            </div>
+            {status === "error" && (
+              <p className="text-xs text-red-500">전송에 실패했습니다. 다시 시도해 주세요.</p>
+            )}
+            <button
+              type="submit"
+              disabled={status === "sending" || !message.trim()}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-blue-700 text-white rounded-2xl text-sm font-semibold hover:bg-blue-800 active:scale-95 transition-all disabled:opacity-50"
+            >
+              {status === "sending" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {status === "sending" ? "전송 중..." : "보내기"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function VerseText({ text }: { text: string }) {
   const lines = text.split("\n").filter(Boolean);
   return (
@@ -275,6 +376,7 @@ export default function Home() {
   const [news, setNews]                 = useState<NewsResult>({ bbc: [], daum: [] });
   const [newsLoading, setNewsLoading]   = useState(false);
   const [showPrayer, setShowPrayer]     = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
   const todayStr   = format(today, "yyyy-MM-dd");
@@ -339,8 +441,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-blue-50 flex flex-col max-w-md mx-auto relative">
-      {/* Breathing prayer overlay */}
-      {showPrayer && <BreathingPrayer onClose={() => setShowPrayer(false)} />}
+      {/* Overlays */}
+      {showPrayer    && <BreathingPrayer onClose={() => setShowPrayer(false)} />}
+      {showFeedback  && <FeedbackModal   onClose={() => setShowFeedback(false)} />}
 
       {/* Header */}
       <header className="px-5 pt-12 pb-4 flex items-center justify-between">
@@ -351,9 +454,14 @@ export default function Home() {
           </svg>
           <h1 className="text-xl font-semibold text-blue-900 tracking-tight">매일 묵상</h1>
         </div>
-        <p className="text-sm text-blue-600 font-medium">
-          {format(isToday ? today : selectedDate, "M월 d일", { locale: ko })}
-        </p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowFeedback(true)} className="text-stone-400 hover:text-blue-600 transition-colors">
+            <MessageSquare className="w-4 h-4" />
+          </button>
+          <p className="text-sm text-blue-600 font-medium">
+            {format(isToday ? today : selectedDate, "M월 d일", { locale: ko })}
+          </p>
+        </div>
       </header>
 
       <main className="flex-1 px-4 pb-28 space-y-4 fade-in">
