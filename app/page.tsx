@@ -454,14 +454,9 @@ export default function Home() {
           </svg>
           <h1 className="text-xl font-semibold text-blue-900 tracking-tight">매일 묵상</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowFeedback(true)} className="text-stone-400 hover:text-blue-600 transition-colors">
-            <MessageSquare className="w-4 h-4" />
-          </button>
-          <p className="text-sm text-blue-600 font-medium">
-            {format(isToday ? today : selectedDate, "M월 d일", { locale: ko })}
-          </p>
-        </div>
+        <p className="text-sm text-blue-600 font-medium">
+          {format(isToday ? today : selectedDate, "M월 d일", { locale: ko })}
+        </p>
       </header>
 
       <main className="flex-1 px-4 pb-28 space-y-4 fade-in">
@@ -743,12 +738,21 @@ export default function Home() {
           {/* 기록 */}
           <button
             onClick={() => setTab("history")}
-            className={`flex flex-col items-center gap-1 py-2 px-6 rounded-2xl transition-all ${
+            className={`flex flex-col items-center gap-1 py-2 px-4 rounded-2xl transition-all ${
               tab === "history" ? "text-blue-700" : "text-stone-400 hover:text-stone-600"
             }`}
           >
             <History className={`w-5 h-5 ${tab === "history" ? "stroke-[2.5px]" : ""}`} />
             <span className={`text-xs ${tab === "history" ? "font-semibold" : "font-medium"}`}>기록</span>
+          </button>
+
+          {/* 의견 */}
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="flex flex-col items-center gap-1 py-2 px-4 rounded-2xl transition-all text-stone-400 hover:text-stone-600"
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-xs font-medium">의견</span>
           </button>
         </div>
       </nav>
