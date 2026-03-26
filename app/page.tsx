@@ -9,14 +9,159 @@ import { getEntry, saveEntry, getEntries, DailyEntry } from "@/lib/storage";
 import { shareToInstagram } from "@/lib/share";
 import ShareCard from "@/components/ShareCard";
 import HistoryCalendar from "@/components/HistoryCalendar";
-import NotificationSetup from "@/components/NotificationSetup";
 import type { NewsItem, NewsResult } from "@/app/api/news/route";
 import {
-  BookOpen, PenLine, History, Settings,
+  BookOpen, PenLine, History, Wind,
   Share2, Download, Save, ExternalLink, Newspaper, Loader2, ChevronDown,
 } from "lucide-react";
 
-type Tab = "today" | "history" | "settings";
+type Tab = "today" | "history";
+
+// ── Breathing Prayer Overlay ──────────────────────────────────────────────────
+
+const BREATH_PHASES = [
+  { duration: 3, type: "start",  text: "고요히",  sub: "눈을 감고 마음을 내려놓으세요" },
+  { duration: 4, type: "inhale", text: "들숨",    sub: "하나님을 마십니다" },
+  { duration: 2, type: "hold",   text: "멈춤",    sub: "하나님과 함께 머뭅니다" },
+  { duration: 4, type: "exhale", text: "날숨",    sub: "염려를 내려놓습니다" },
+  { duration: 2, type: "rest",   text: "쉼",      sub: "그 평안 안에서" },
+  { duration: 4, type: "inhale", text: "들숨",    sub: "성령으로 채워집니다" },
+  { duration: 2, type: "hold",   text: "멈춤",    sub: "하나님이 나와 함께" },
+  { duration: 4, type: "exhale", text: "날숨",    sub: "두려움을 내어드립니다" },
+  { duration: 2, type: "rest",   text: "쉼",      sub: "주님의 품 안에서" },
+  { duration: 3, type: "end",    text: "아멘",    sub: "기도를 마칩니다" },
+] as const;
+
+const BREATH_TOTAL = BREATH_PHASES.reduce((s, p) => s + p.duration, 0); // 30s
+
+const TARGET_SIZE: Record<string, number> = {
+  start: 80, inhale: 220, hold: 220, exhale: 80, rest: 80, end: 100,
+};
+
+function BreathingPrayer({ onClose }: { onClose: () => void }) {
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [elapsed, setElapsed]       = useState(0);
+  const [done, setDone]             = useState(false);
+
+  useEffect(() => {
+    if (done) return;
+    const phase = BREATH_PHASES[phaseIndex];
+    const start = Date.now();
+    const iv = setInterval(() => {
+      const e = (Date.now() - start) / 1000;
+      if (e >= phase.duration) {
+        clearInterval(iv);
+        if (phaseIndex < BREATH_PHASES.length - 1) {
+          setPhaseIndex(i => i + 1);
+          setElapsed(0);
+        } else {
+          setDone(true);
+        }
+      } else {
+        setElapsed(e);
+      }
+    }, 50);
+    return () => clearInterval(iv);
+  }, [phaseIndex, done]);
+
+  const phase       = BREATH_PHASES[phaseIndex];
+  const targetSize  = TARGET_SIZE[phase.type];
+  const prevSecs    = BREATH_PHASES.slice(0, phaseIndex).reduce((s, p) => s + p.duration, 0);
+  const totalElapsed= prevSecs + elapsed;
+  const progress    = totalElapsed / BREATH_TOTAL;
+  const transDur    = `${phase.duration * 0.9}s`;
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-gradient-to-b from-[#03091c] to-[#0b1a45] px-8">
+      {/* Header */}
+      <div className="w-full flex justify-between items-center pt-14">
+        <div className="flex items-center gap-2">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+            <rect x="10.5" y="2"  width="3" height="20" fill="#93c5fd" rx="1.5" />
+            <rect x="2"  y="10.5" width="20" height="3"  fill="#93c5fd" rx="1.5" />
+          </svg>
+          <span className="text-blue-300 text-sm tracking-[0.2em]">호흡 기도</span>
+        </div>
+        <button onClick={onClose} className="text-white/30 hover:text-white/60 text-sm transition-colors">
+          닫기
+        </button>
+      </div>
+
+      {/* Breathing circle */}
+      <div className="relative flex items-center justify-center" style={{ width: 260, height: 260 }}>
+        {/* Outer glow */}
+        <div
+          className="absolute rounded-full border border-blue-300/10"
+          style={{
+            width: targetSize + 50, height: targetSize + 50,
+            transition: `width ${transDur} ease-in-out, height ${transDur} ease-in-out`,
+            boxShadow: `0 0 ${targetSize * 0.4}px ${targetSize * 0.15}px rgba(96,165,250,0.07)`,
+          }}
+        />
+        {/* Mid ring */}
+        <div
+          className="absolute rounded-full border border-blue-400/20 bg-blue-500/5"
+          style={{
+            width: targetSize + 20, height: targetSize + 20,
+            transition: `width ${transDur} ease-in-out, height ${transDur} ease-in-out`,
+          }}
+        />
+        {/* Main circle */}
+        <div
+          className="absolute rounded-full bg-gradient-to-br from-blue-500/30 to-indigo-600/30 border border-blue-300/25"
+          style={{
+            width: targetSize, height: targetSize,
+            transition: `width ${transDur} ease-in-out, height ${transDur} ease-in-out`,
+            boxShadow: `0 0 ${targetSize * 0.35}px rgba(96,165,250,0.18)`,
+          }}
+        />
+        {/* Center cross */}
+        <div className="relative z-10">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+            <rect x="10.5" y="2"  width="3" height="20" fill="#bfdbfe" rx="1.5" />
+            <rect x="2"  y="10.5" width="20" height="3"  fill="#bfdbfe" rx="1.5" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Phase text */}
+      <div className="text-center space-y-3 min-h-[88px] flex flex-col items-center justify-center">
+        {done ? (
+          <>
+            <p className="text-white text-4xl font-extralight tracking-[0.25em]">아멘</p>
+            <p className="text-blue-300/60 text-sm">30초 호흡 기도를 마쳤습니다</p>
+            <button
+              onClick={onClose}
+              className="mt-3 px-6 py-2 rounded-full border border-blue-400/30 text-blue-300/70 text-sm hover:text-blue-200 hover:border-blue-300/60 transition-colors"
+            >
+              닫기
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-white text-4xl font-extralight tracking-[0.2em]">{phase.text}</p>
+            <p className="text-blue-300/60 text-sm leading-relaxed">{phase.sub}</p>
+          </>
+        )}
+      </div>
+
+      {/* Progress bar */}
+      <div className="w-full max-w-xs pb-16 space-y-2">
+        <div className="w-full bg-white/5 rounded-full h-px">
+          <div
+            className="bg-blue-400/40 h-px rounded-full"
+            style={{ width: `${progress * 100}%`, transition: "width 0.1s linear" }}
+          />
+        </div>
+        <p className="text-center text-blue-400/30 text-xs">
+          {done ? "완료" : `${Math.floor(totalElapsed)} / 30초`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── News block ────────────────────────────────────────────────────────────────
 
 function NewsFeedBlock({ title, accent, items }: { title: string; accent: string; items: NewsItem[] }) {
   return (
@@ -54,6 +199,7 @@ function NewsFeedBlock({ title, accent, items }: { title: string; accent: string
     </div>
   );
 }
+
 type ReadingKey = "ot" | "psalm" | "epistle" | "gospel";
 
 const READING_LABELS: Record<ReadingKey, { ko: string; color: string }> = {
@@ -66,27 +212,27 @@ const READING_LABELS: Record<ReadingKey, { ko: string; color: string }> = {
 interface BibleText { en: { text: string; reference: string } | null; ko: { text: string; reference: string } | null }
 
 export default function Home() {
-  const [tab, setTab] = useState<Tab>("today");
-  const [today] = useState(new Date());
+  const [tab, setTab]                   = useState<Tab>("today");
+  const [today]                         = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [rcl, setRcl] = useState<RCLReadings | null>(null);
-  const [keyVerses, setKeyVerses] = useState<DayKeyVerses | null>(null);
+  const [rcl, setRcl]                   = useState<RCLReadings | null>(null);
+  const [keyVerses, setKeyVerses]       = useState<DayKeyVerses | null>(null);
   const [activeReading, setActiveReading] = useState<ReadingKey>("gospel");
-  const [bibleText, setBibleText] = useState<BibleText | null>(null);
+  const [bibleText, setBibleText]       = useState<BibleText | null>(null);
   const [bibleLoading, setBibleLoading] = useState(false);
-  const [memo, setMemo] = useState("");
-  const [entries, setEntries] = useState<Record<string, DailyEntry>>({});
-  const [saved, setSaved] = useState(false);
-  const [showShare, setShowShare] = useState(false);
-  const [news, setNews] = useState<NewsResult>({ bbc: [], daum: [] });
-  const [newsLoading, setNewsLoading] = useState(false);
+  const [memo, setMemo]                 = useState("");
+  const [entries, setEntries]           = useState<Record<string, DailyEntry>>({});
+  const [saved, setSaved]               = useState(false);
+  const [showShare, setShowShare]       = useState(false);
+  const [news, setNews]                 = useState<NewsResult>({ bbc: [], daum: [] });
+  const [newsLoading, setNewsLoading]   = useState(false);
+  const [showPrayer, setShowPrayer]     = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
-  const todayStr = format(today, "yyyy-MM-dd");
-  const selectedStr = format(selectedDate, "yyyy-MM-dd");
-  const isToday = todayStr === selectedStr;
+  const todayStr   = format(today, "yyyy-MM-dd");
+  const selectedStr= format(selectedDate, "yyyy-MM-dd");
+  const isToday    = todayStr === selectedStr;
 
-  // Load RCL and saved entry when date changes
   useEffect(() => {
     const readings = getRCLReadings(selectedDate);
     setRcl(readings);
@@ -96,13 +242,11 @@ export default function Home() {
     setEntries(getEntries());
   }, [selectedDate, selectedStr]);
 
-  // Fetch Bible text — uses key verse ref if available, otherwise full passage
-  const fetchBible = useCallback(async (fullRef: string, keyRef?: string) => {
+  const fetchBible = useCallback(async (fullRef: string) => {
     setBibleText(null);
     setBibleLoading(true);
     try {
-      const ref = fullRef;
-      const res = await fetch(`/api/bible?ref=${encodeURIComponent(ref)}`);
+      const res  = await fetch(`/api/bible?ref=${encodeURIComponent(fullRef)}`);
       const data = await res.json();
       setBibleText(data);
     } catch {
@@ -114,11 +258,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!rcl) return;
-    const kv = keyVerses?.[activeReading];
-    fetchBible(rcl[activeReading], kv?.ref);
-  }, [rcl, keyVerses, activeReading, fetchBible]);
+    fetchBible(rcl[activeReading]);
+  }, [rcl, activeReading, fetchBible]);
 
-  // Fetch news once on mount
   useEffect(() => {
     setNewsLoading(true);
     fetch("/api/news")
@@ -149,6 +291,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-blue-50 flex flex-col max-w-md mx-auto relative">
+      {/* Breathing prayer overlay */}
+      {showPrayer && <BreathingPrayer onClose={() => setShowPrayer(false)} />}
+
       {/* Header */}
       <header className="px-5 pt-12 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -168,7 +313,6 @@ export default function Home() {
         {/* ── TODAY TAB ── */}
         {tab === "today" && rcl && (
           <>
-            {/* Date label when viewing past */}
             {!isToday && (
               <div className="flex items-center gap-2 px-1">
                 <span className="text-sm text-blue-700 font-medium">
@@ -214,7 +358,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Reading reference + key verse indicator */}
+            {/* Reading reference */}
             <div className="px-1 flex items-center justify-between">
               <p className="text-xs text-blue-500 font-medium">{rcl[activeReading]}</p>
               {keyVerses?.[activeReading] && (
@@ -232,7 +376,6 @@ export default function Home() {
                 </div>
               ) : bibleText ? (
                 <div className="space-y-4">
-                  {/* Korean */}
                   {bibleText.ko ? (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
@@ -248,7 +391,6 @@ export default function Home() {
 
                   <div className="border-t border-blue-100" />
 
-                  {/* English */}
                   {bibleText.en ? (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
@@ -262,7 +404,6 @@ export default function Home() {
                     <p className="text-sm text-stone-400 italic">English text unavailable.</p>
                   )}
 
-                  {/* Progressive lens note */}
                   {keyVerses?.[activeReading]?.note && (
                     <>
                       <div className="border-t border-violet-100" />
@@ -323,7 +464,6 @@ export default function Home() {
                 <Newspaper className="w-4 h-4 text-blue-600" />
                 <h2 className="text-sm font-semibold text-stone-700">오늘의 뉴스 (기도 참고)</h2>
               </div>
-
               {newsLoading ? (
                 <div className="bg-white/60 rounded-2xl flex items-center gap-2 py-6 justify-center">
                   <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
@@ -331,17 +471,8 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  {/* BBC */}
-                  <NewsFeedBlock
-                    title="BBC World News"
-                    accent="bg-stone-900"
-                    items={news.bbc ?? []}
-                  />
-                  <NewsFeedBlock
-                    title="연합뉴스"
-                    accent="bg-blue-600"
-                    items={news.daum ?? []}
-                  />
+                  <NewsFeedBlock title="BBC World News" accent="bg-stone-900" items={news.bbc ?? []} />
+                  <NewsFeedBlock title="연합뉴스"        accent="bg-blue-600"  items={news.daum ?? []} />
                 </>
               )}
             </div>
@@ -430,45 +561,43 @@ export default function Home() {
             </div>
           </>
         )}
-
-        {/* ── SETTINGS TAB ── */}
-        {tab === "settings" && (
-          <>
-            <div className="px-1 mb-2">
-              <h2 className="text-base font-semibold text-blue-900">설정</h2>
-            </div>
-            <NotificationSetup />
-            <div className="bg-white/60 rounded-2xl p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-stone-700">앱 정보</h3>
-              <div className="space-y-2 text-sm text-stone-500">
-                <div className="flex justify-between"><span>성경 본문</span><span className="text-stone-400">개역한글 · WEB (영어)</span></div>
-                <div className="flex justify-between"><span>일과표</span><span className="text-stone-400">Revised Common Lectionary</span></div>
-                <div className="flex justify-between"><span>저장된 기록</span><span className="text-stone-400">{Object.values(entries).filter((e) => e.memo).length}일</span></div>
-              </div>
-            </div>
-          </>
-        )}
       </main>
 
       {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/85 backdrop-blur-xl border-t border-blue-100 px-4 py-2">
-        <div className="flex justify-around">
-          {([
-            { id: "today" as Tab, label: "오늘", Icon: BookOpen },
-            { id: "history" as Tab, label: "기록", Icon: History },
-            { id: "settings" as Tab, label: "설정", Icon: Settings },
-          ]).map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              className={`flex flex-col items-center gap-1 py-2 px-6 rounded-2xl transition-all ${
-                tab === id ? "text-blue-700" : "text-stone-400 hover:text-stone-600"
-              }`}
-            >
-              <Icon className={`w-5 h-5 ${tab === id ? "stroke-[2.5px]" : ""}`} />
-              <span className={`text-xs ${tab === id ? "font-semibold" : "font-medium"}`}>{label}</span>
-            </button>
-          ))}
+        <div className="flex justify-around items-end">
+          {/* 오늘 */}
+          <button
+            onClick={() => setTab("today")}
+            className={`flex flex-col items-center gap-1 py-2 px-6 rounded-2xl transition-all ${
+              tab === "today" ? "text-blue-700" : "text-stone-400 hover:text-stone-600"
+            }`}
+          >
+            <BookOpen className={`w-5 h-5 ${tab === "today" ? "stroke-[2.5px]" : ""}`} />
+            <span className={`text-xs ${tab === "today" ? "font-semibold" : "font-medium"}`}>오늘</span>
+          </button>
+
+          {/* 기도 (center — opens overlay) */}
+          <button
+            onClick={() => setShowPrayer(true)}
+            className="flex flex-col items-center gap-1 -mt-4 px-5"
+          >
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-400/30 active:scale-95 transition-transform">
+              <Wind className="w-6 h-6 text-white stroke-2" />
+            </div>
+            <span className="text-xs font-medium text-blue-600 mt-0.5">기도</span>
+          </button>
+
+          {/* 기록 */}
+          <button
+            onClick={() => setTab("history")}
+            className={`flex flex-col items-center gap-1 py-2 px-6 rounded-2xl transition-all ${
+              tab === "history" ? "text-blue-700" : "text-stone-400 hover:text-stone-600"
+            }`}
+          >
+            <History className={`w-5 h-5 ${tab === "history" ? "stroke-[2.5px]" : ""}`} />
+            <span className={`text-xs ${tab === "history" ? "font-semibold" : "font-medium"}`}>기록</span>
+          </button>
         </div>
       </nav>
 
