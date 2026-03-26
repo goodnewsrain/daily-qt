@@ -13,6 +13,13 @@ async function fetchEnglish(ref: string): Promise<{ text: string; reference: str
     const res = await fetch(url, { next: { revalidate: 86400 } });
     if (!res.ok) return null;
     const data = await res.json();
+    // Use verses array to include verse numbers, fallback to plain text
+    if (Array.isArray(data.verses) && data.verses.length > 0) {
+      const text = data.verses
+        .map((v: { verse: number; text: string }) => `${v.verse} ${v.text.trim()}`)
+        .join("\n");
+      return { text, reference: data.reference ?? ref };
+    }
     return { text: data.text?.trim() ?? "", reference: data.reference ?? ref };
   } catch {
     return null;
