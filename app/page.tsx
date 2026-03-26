@@ -187,22 +187,22 @@ function BreathingPrayer({ onClose }: { onClose: () => void }) {
 
 // ── News block ────────────────────────────────────────────────────────────────
 
-function VerseText({ text, italic }: { text: string; italic?: boolean }) {
+function VerseText({ text }: { text: string }) {
   const lines = text.split("\n").filter(Boolean);
   return (
-    <div className={`space-y-1.5 ${italic ? "italic" : ""}`}>
+    <div className="space-y-1.5 not-italic">
       {lines.map((line, i) => {
         const m = line.match(/^(\d+)\s+([\s\S]+)$/);
         if (m) {
           return (
-            <p key={i} className={`text-sm leading-loose ${italic ? "text-stone-500" : "text-stone-800 font-medium"}`}>
-              <span className="text-stone-400 text-xs font-normal mr-1.5 not-italic">{m[1]}</span>
+            <p key={i} className="text-sm leading-loose text-stone-700 not-italic" style={{ fontStyle: "normal" }}>
+              <span className="text-stone-400 text-xs font-normal mr-1.5">{m[1]}</span>
               {m[2]}
             </p>
           );
         }
         return (
-          <p key={i} className={`text-sm leading-loose ${italic ? "text-stone-500" : "text-stone-800 font-medium"}`}>
+          <p key={i} className="text-sm leading-loose text-stone-700 not-italic" style={{ fontStyle: "normal" }}>
             {line}
           </p>
         );
