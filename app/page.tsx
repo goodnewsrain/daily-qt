@@ -294,7 +294,7 @@ export default function Home() {
     setBibleText(null);
     setBibleLoading(true);
     try {
-      const res  = await fetch(`/api/bible?ref=${encodeURIComponent(fullRef)}`);
+      const res  = await fetch(`/api/bible?ref=${encodeURIComponent(fullRef)}`, { cache: "no-cache" });
       const data = await res.json();
       setBibleText(data);
     } catch {
