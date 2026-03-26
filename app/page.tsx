@@ -21,21 +21,23 @@ type Tab = "today" | "history";
 
 const BREATH_PHASES = [
   { duration: 3, type: "start",  text: "고요히",  sub: "눈을 감고 마음을 내려놓으세요" },
-  { duration: 4, type: "inhale", text: "들숨",    sub: "하나님을 마십니다" },
-  { duration: 2, type: "hold",   text: "멈춤",    sub: "하나님과 함께 머뭅니다" },
-  { duration: 4, type: "exhale", text: "날숨",    sub: "염려를 내려놓습니다" },
-  { duration: 2, type: "rest",   text: "쉼",      sub: "그 평안 안에서" },
-  { duration: 4, type: "inhale", text: "들숨",    sub: "성령으로 채워집니다" },
-  { duration: 2, type: "hold",   text: "멈춤",    sub: "하나님이 나와 함께" },
-  { duration: 4, type: "exhale", text: "날숨",    sub: "두려움을 내어드립니다" },
-  { duration: 2, type: "rest",   text: "쉼",      sub: "주님의 품 안에서" },
-  { duration: 3, type: "end",    text: "아멘",    sub: "기도를 마칩니다" },
+  { duration: 2, type: "inhale", text: "들숨",    sub: "하나님을 마십니다" },
+  { duration: 3, type: "exhale", text: "날숨",    sub: "염려를 내려놓습니다" },
+  { duration: 2, type: "inhale", text: "들숨",    sub: "성령으로 채워집니다" },
+  { duration: 3, type: "exhale", text: "날숨",    sub: "두려움을 내어드립니다" },
+  { duration: 2, type: "inhale", text: "들숨",    sub: "하나님의 사랑을 마십니다" },
+  { duration: 3, type: "exhale", text: "날숨",    sub: "나를 온전히 드립니다" },
+  { duration: 2, type: "inhale", text: "들숨",    sub: "평안으로 채워집니다" },
+  { duration: 3, type: "exhale", text: "날숨",    sub: "감사함으로 내쉽니다" },
+  { duration: 2, type: "inhale", text: "들숨",    sub: "주님과 함께" },
+  { duration: 3, type: "exhale", text: "날숨",    sub: "주님께 드립니다" },
+  { duration: 2, type: "end",    text: "아멘",    sub: "기도를 마칩니다" },
 ] as const;
 
 const BREATH_TOTAL = BREATH_PHASES.reduce((s, p) => s + p.duration, 0); // 30s
 
 const TARGET_SIZE: Record<string, number> = {
-  start: 80, inhale: 220, hold: 220, exhale: 80, rest: 80, end: 100,
+  start: 80, inhale: 220, exhale: 80, end: 110,
 };
 
 function BreathingPrayer({ onClose }: { onClose: () => void }) {
