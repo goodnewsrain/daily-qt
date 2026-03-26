@@ -426,7 +426,7 @@ export default function Home() {
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] font-bold text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full tracking-widest">English · WEB</span>
                       </div>
-                      <VerseText text={bibleText.en.text} italic />
+                      <VerseText text={bibleText.en.text} />
                     </div>
                   ) : (
                     <p className="text-sm text-stone-400 italic">English text unavailable.</p>
