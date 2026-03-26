@@ -455,7 +455,7 @@ export default function Home() {
           <h1 className="text-xl font-semibold text-blue-900 tracking-tight">매일 묵상</h1>
         </div>
         <p className="text-sm text-blue-600 font-medium">
-          {format(isToday ? today : selectedDate, "M월 d일", { locale: ko })}
+          {format(isToday ? today : selectedDate, "yyyy년 M월 d일 EEE", { locale: ko })}
         </p>
       </header>
 
