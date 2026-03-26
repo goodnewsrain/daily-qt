@@ -165,6 +165,30 @@ function BreathingPrayer({ onClose }: { onClose: () => void }) {
 
 // ── News block ────────────────────────────────────────────────────────────────
 
+function VerseText({ text, italic }: { text: string; italic?: boolean }) {
+  const lines = text.split("\n").filter(Boolean);
+  return (
+    <div className={`space-y-1.5 ${italic ? "italic" : ""}`}>
+      {lines.map((line, i) => {
+        const m = line.match(/^(\d+)\s+([\s\S]+)$/);
+        if (m) {
+          return (
+            <p key={i} className={`text-sm leading-loose ${italic ? "text-stone-500" : "text-stone-800 font-medium"}`}>
+              <span className="text-stone-400 text-xs font-normal mr-1.5 not-italic">{m[1]}</span>
+              {m[2]}
+            </p>
+          );
+        }
+        return (
+          <p key={i} className={`text-sm leading-loose ${italic ? "text-stone-500" : "text-stone-800 font-medium"}`}>
+            {line}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function NewsFeedBlock({ title, accent, items }: { title: string; accent: string; items: NewsItem[] }) {
   return (
     <div className="bg-white/60 rounded-2xl overflow-hidden">
@@ -383,9 +407,7 @@ export default function Home() {
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full tracking-widest">한국어 · 개역한글</span>
                       </div>
-                      <p className="text-sm text-stone-800 prose-ko whitespace-pre-line leading-loose font-medium">
-                        {bibleText.ko.text}
-                      </p>
+                      <VerseText text={bibleText.ko.text} />
                     </div>
                   ) : (
                     <p className="text-sm text-stone-400 italic">한국어 본문을 불러올 수 없습니다.</p>
@@ -398,9 +420,7 @@ export default function Home() {
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] font-bold text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full tracking-widest">English · WEB</span>
                       </div>
-                      <p className="text-sm text-stone-500 leading-loose whitespace-pre-line italic">
-                        {bibleText.en.text}
-                      </p>
+                      <VerseText text={bibleText.en.text} italic />
                     </div>
                   ) : (
                     <p className="text-sm text-stone-400 italic">English text unavailable.</p>
