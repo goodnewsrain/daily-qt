@@ -43,6 +43,43 @@ function BreathingPrayer({ onClose }: { onClose: () => void }) {
   const [elapsed, setElapsed]       = useState(0);
   const [done, setDone]             = useState(false);
 
+  // Speak phase guidance
+  useEffect(() => {
+    if (done || typeof window === "undefined" || !window.speechSynthesis) return;
+    const phase = BREATH_PHASES[phaseIndex];
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(`${phase.text}. ${phase.sub}`);
+    utter.lang   = "ko-KR";
+    utter.rate   = 0.78;
+    utter.pitch  = 0.95;
+    utter.volume = 1.0;
+    // Prefer a Korean voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const koVoice = voices.find(v => v.lang.startsWith("ko"));
+    if (koVoice) utter.voice = koVoice;
+    window.speechSynthesis.speak(utter);
+    return () => { window.speechSynthesis.cancel(); };
+  }, [phaseIndex, done]);
+
+  // Speak "아멘" when done
+  useEffect(() => {
+    if (!done || typeof window === "undefined" || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance("아멘. 기도를 마칩니다.");
+    utter.lang  = "ko-KR";
+    utter.rate  = 0.78;
+    utter.pitch = 0.95;
+    const voices = window.speechSynthesis.getVoices();
+    const koVoice = voices.find(v => v.lang.startsWith("ko"));
+    if (koVoice) utter.voice = koVoice;
+    window.speechSynthesis.speak(utter);
+  }, [done]);
+
+  // Cancel speech on unmount
+  useEffect(() => {
+    return () => { if (typeof window !== "undefined") window.speechSynthesis.cancel(); };
+  }, []);
+
   useEffect(() => {
     if (done) return;
     const phase = BREATH_PHASES[phaseIndex];
