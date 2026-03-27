@@ -352,6 +352,89 @@ function NewsFeedBlock({ title, accent, items }: { title: string; accent: string
 
 type ReadingKey = RCLReadingKey;
 
+// English book name → Korean name (handles full names and common abbreviations)
+const KO_BOOK: Record<string, string> = {
+  genesis:"창세기", gen:"창세기",
+  exodus:"출애굽기", exod:"출애굽기", exo:"출애굽기",
+  leviticus:"레위기", lev:"레위기",
+  numbers:"민수기", num:"민수기",
+  deuteronomy:"신명기", deut:"신명기",
+  joshua:"여호수아", josh:"여호수아",
+  judges:"사사기", judg:"사사기",
+  ruth:"룻기",
+  "1 samuel":"사무엘상", "1sam":"사무엘상",
+  "2 samuel":"사무엘하", "2sam":"사무엘하",
+  "1 kings":"열왕기상", "1kgs":"열왕기상",
+  "2 kings":"열왕기하", "2kgs":"열왕기하",
+  "1 chronicles":"역대상", "1chr":"역대상",
+  "2 chronicles":"역대하", "2chr":"역대하",
+  ezra:"에스라",
+  nehemiah:"느헤미야", neh:"느헤미야",
+  esther:"에스더", esth:"에스더",
+  job:"욥기",
+  psalm:"시편", psalms:"시편", ps:"시편",
+  proverbs:"잠언", prov:"잠언",
+  ecclesiastes:"전도서", eccl:"전도서",
+  "song of solomon":"아가", song:"아가",
+  isaiah:"이사야", isa:"이사야",
+  jeremiah:"예레미야", jer:"예레미야",
+  lamentations:"예레미야애가", lam:"예레미야애가", lamentation:"예레미야애가",
+  ezekiel:"에스겔", ezek:"에스겔",
+  daniel:"다니엘", dan:"다니엘",
+  hosea:"호세아", hos:"호세아",
+  joel:"요엘",
+  amos:"아모스",
+  obadiah:"오바댜", obad:"오바댜",
+  jonah:"요나",
+  micah:"미가", mic:"미가",
+  nahum:"나훔", nah:"나훔",
+  habakkuk:"하박국", hab:"하박국",
+  zephaniah:"스바냐", zeph:"스바냐",
+  haggai:"학개", hag:"학개",
+  zechariah:"스가랴", zech:"스가랴",
+  malachi:"말라기", mal:"말라기",
+  matthew:"마태복음", matt:"마태복음",
+  mark:"마가복음",
+  luke:"누가복음",
+  john:"요한복음",
+  acts:"사도행전",
+  romans:"로마서", rom:"로마서",
+  "1 corinthians":"고린도전서", "1cor":"고린도전서",
+  "2 corinthians":"고린도후서", "2cor":"고린도후서",
+  galatians:"갈라디아서", gal:"갈라디아서",
+  ephesians:"에베소서", eph:"에베소서",
+  philippians:"빌립보서", phil:"빌립보서",
+  colossians:"골로새서", col:"골로새서",
+  "1 thessalonians":"데살로니가전서", "1thess":"데살로니가전서",
+  "2 thessalonians":"데살로니가후서", "2thess":"데살로니가후서",
+  "1 timothy":"디모데전서", "1tim":"디모데전서",
+  "2 timothy":"디모데후서", "2tim":"디모데후서",
+  titus:"디도서",
+  philemon:"빌레몬서", phlm:"빌레몬서",
+  hebrews:"히브리서", heb:"히브리서",
+  james:"야고보서", jas:"야고보서",
+  "1 peter":"베드로전서", "1pet":"베드로전서",
+  "2 peter":"베드로후서", "2pet":"베드로후서",
+  "1 john":"요한일서", "1john":"요한일서",
+  "2 john":"요한이서", "2john":"요한이서",
+  "3 john":"요한삼서", "3john":"요한삼서",
+  jude:"유다서",
+  revelation:"요한계시록", rev:"요한계시록",
+};
+
+// "Mark 11:12-25" → "Mark 마가복음 11:12-25"
+function withKoBook(ref: string): string {
+  if (!ref) return ref;
+  // Match optional leading number + book name (before chapter digits)
+  const m = ref.match(/^((?:\d\s+)?[A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(\d.*)$/);
+  if (!m) return ref;
+  const bookPart = m[1];
+  const rest = m[2];
+  const ko = KO_BOOK[bookPart.toLowerCase()];
+  if (!ko) return ref;
+  return `${bookPart} ${ko} ${rest}`;
+}
+
 const READING_LABELS: Record<ReadingKey, { ko: string; color: string }> = {
   ot:      { ko: "구약", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
   psalm:   { ko: "시편", color: "bg-violet-100 text-violet-800 border-violet-300" },
@@ -513,7 +596,7 @@ export default function Home() {
                 >
                   <span>{READING_LABELS[key].ko}</span>
                   <span className="text-[10px] font-normal mt-0.5 opacity-70 leading-tight text-center line-clamp-2 max-w-full px-0.5">
-                    {rcl[key]}
+                    {withKoBook(rcl[key])}
                   </span>
                 </button>
               ))}
@@ -521,7 +604,7 @@ export default function Home() {
 
             {/* Reading reference */}
             <div className="px-1 flex items-center justify-between">
-              <p className="text-xs text-blue-500 font-medium">{rcl[activeReading]}</p>
+              <p className="text-xs text-blue-500 font-medium">{withKoBook(rcl[activeReading])}</p>
               {keyVerses?.[activeReading] && (
                 <span className="text-[10px] text-violet-500 font-semibold bg-violet-50 px-2 py-0.5 rounded-full">
                   핵심 {keyVerses[activeReading]!.ref}
@@ -594,7 +677,7 @@ export default function Home() {
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${READING_LABELS[key].color}`}>
                       {READING_LABELS[key].ko}
                     </span>
-                    <span className="text-stone-600 text-xs">{rcl[key]}</span>
+                    <span className="text-stone-600 text-xs">{withKoBook(rcl[key])}</span>
                   </button>
                 ))}
               </div>
