@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { getRCLReadings, getDailyReading, RCLReadings } from "@/lib/rcl";
 import type { ReadingKey as RCLReadingKey } from "@/lib/rcl";
-import { getKeyVerses, DayKeyVerses } from "@/lib/keyVerses";
 import { getEntry, saveEntry, getEntries, DailyEntry } from "@/lib/storage";
 import { shareToInstagram } from "@/lib/share";
 import ShareCard from "@/components/ShareCard";
@@ -449,7 +448,6 @@ export default function Home() {
   const [today]                         = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [rcl, setRcl]                   = useState<RCLReadings | null>(null);
-  const [keyVerses, setKeyVerses]       = useState<DayKeyVerses | null>(null);
   const [activeReading, setActiveReading] = useState<ReadingKey>(() => getDailyReading(new Date()));
   const [bibleText, setBibleText]       = useState<BibleText | null>(null);
   const [bibleLoading, setBibleLoading] = useState(false);
@@ -473,12 +471,10 @@ export default function Home() {
       .then((r) => r.json())
       .then((readings: RCLReadings) => {
         setRcl(readings);
-        setKeyVerses(getKeyVerses(readings.sundayDate));
       })
       .catch(() => {
         const readings = getRCLReadings(selectedDate);
         setRcl(readings);
-        setKeyVerses(getKeyVerses(readings.sundayDate));
       });
     const entry = getEntry(selectedStr);
     setMemo(entry?.memo ?? "");
@@ -605,11 +601,6 @@ export default function Home() {
             {/* Reading reference */}
             <div className="px-1 flex items-center justify-between">
               <p className="text-xs text-blue-500 font-medium">{withKoBook(rcl[activeReading])}</p>
-              {keyVerses?.[activeReading] && (
-                <span className="text-[10px] text-violet-500 font-semibold bg-violet-50 px-2 py-0.5 rounded-full">
-                  핵심 {keyVerses[activeReading]!.ref}
-                </span>
-              )}
             </div>
 
             {/* Bible text card */}
@@ -644,17 +635,6 @@ export default function Home() {
                     <p className="text-sm text-stone-400 italic">English text unavailable.</p>
                   )}
 
-                  {keyVerses?.[activeReading]?.note && (
-                    <>
-                      <div className="border-t border-violet-100" />
-                      <div className="flex items-start gap-2 bg-violet-50 rounded-xl px-3 py-2.5">
-                        <span className="text-violet-500 text-xs mt-0.5">✦</span>
-                        <p className="text-xs text-violet-700 leading-5">
-                          {keyVerses[activeReading]!.note}
-                        </p>
-                      </div>
-                    </>
-                  )}
                 </div>
               ) : (
                 <p className="text-sm text-stone-400 text-center py-8">본문을 불러오는 중...</p>
