@@ -385,9 +385,18 @@ export default function Home() {
   const isToday    = todayStr === selectedStr;
 
   useEffect(() => {
-    const readings = getRCLReadings(selectedDate);
-    setRcl(readings);
-    setKeyVerses(getKeyVerses(readings.sundayDate));
+    setRcl(null);
+    fetch(`/api/lectionary?date=${selectedStr}`, { cache: "no-cache" })
+      .then((r) => r.json())
+      .then((readings: RCLReadings) => {
+        setRcl(readings);
+        setKeyVerses(getKeyVerses(readings.sundayDate));
+      })
+      .catch(() => {
+        const readings = getRCLReadings(selectedDate);
+        setRcl(readings);
+        setKeyVerses(getKeyVerses(readings.sundayDate));
+      });
     const entry = getEntry(selectedStr);
     setMemo(entry?.memo ?? "");
     setEntries(getEntries());
