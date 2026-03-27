@@ -12,7 +12,10 @@ export interface RCLReadings {
 // Year A 2025-2026 + start of Year B (Advent 2026)
 // Special weekdays keyed by exact date override the Sunday lookup
 const SPECIAL_DAYS: Record<string, RCLReadings> = {
+  // Ash Wednesday
   "2026-02-18": { sundayDate: "2026-02-18", season: "사순절", name: "재의 수요일", nameEn: "Ash Wednesday", ot: "Joel 2:1-2, 12-17", psalm: "Psalm 51:1-17", epistle: "2 Cor 5:20b—6:10", gospel: "Matt 6:1-6, 16-21" },
+  // Annunciation (March 25)
+  "2026-03-25": { sundayDate: "2026-03-25", season: "사순절", name: "성모영보 (수태고지)", nameEn: "Annunciation", ot: "Isa 7:10-14", psalm: "Psalm 45:10-17", epistle: "Heb 10:4-10", gospel: "Luke 1:26-38" },
   "2026-03-30": { sundayDate: "2026-03-30", season: "고난주간", name: "성(월)요일", nameEn: "Holy Monday", ot: "Isa 42:1-9", psalm: "Psalm 36:5-11", epistle: "Heb 9:11-15", gospel: "John 12:1-11" },
   "2026-03-31": { sundayDate: "2026-03-31", season: "고난주간", name: "성(화)요일", nameEn: "Holy Tuesday", ot: "Isa 49:1-7", psalm: "Psalm 71:1-14", epistle: "1 Cor 1:18-31", gospel: "John 12:20-36" },
   "2026-04-01": { sundayDate: "2026-04-01", season: "고난주간", name: "성(수)요일", nameEn: "Holy Wednesday", ot: "Isa 50:4-9a", psalm: "Psalm 70", epistle: "Heb 12:1-3", gospel: "John 13:21-32" },
@@ -86,6 +89,14 @@ const SUNDAY_READINGS: RCLReadings[] = [
   // Advent 2026 (Year B starts)
   { sundayDate: "2026-11-29", season: "대강절", name: "대강절 제1주일 (B년)", nameEn: "Advent 1B", ot: "Jer 33:14-16", psalm: "Psalm 25:1-10", epistle: "1 Thess 3:9-13", gospel: "Luke 21:25-36" },
 ];
+
+// Returns which reading to feature by default based on day of week
+// Sun→gospel, Mon→ot, Tue→psalm, Wed→epistle, Thu→gospel, Fri→ot, Sat→psalm
+export type ReadingKey = "ot" | "psalm" | "epistle" | "gospel";
+const DAY_READING: ReadingKey[] = ["gospel", "ot", "psalm", "epistle", "gospel", "ot", "psalm"];
+export function getDailyReading(date: Date): ReadingKey {
+  return DAY_READING[date.getDay()];
+}
 
 export function getRCLReadings(date: Date): RCLReadings {
   const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

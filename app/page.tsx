@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { getRCLReadings, RCLReadings } from "@/lib/rcl";
+import { getRCLReadings, getDailyReading, RCLReadings } from "@/lib/rcl";
+import type { ReadingKey as RCLReadingKey } from "@/lib/rcl";
 import { getKeyVerses, DayKeyVerses } from "@/lib/keyVerses";
 import { getEntry, saveEntry, getEntries, DailyEntry } from "@/lib/storage";
 import { shareToInstagram } from "@/lib/share";
@@ -349,7 +350,7 @@ function NewsFeedBlock({ title, accent, items }: { title: string; accent: string
   );
 }
 
-type ReadingKey = "ot" | "psalm" | "epistle" | "gospel";
+type ReadingKey = RCLReadingKey;
 
 const READING_LABELS: Record<ReadingKey, { ko: string; color: string }> = {
   ot:      { ko: "구약", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
@@ -366,7 +367,7 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [rcl, setRcl]                   = useState<RCLReadings | null>(null);
   const [keyVerses, setKeyVerses]       = useState<DayKeyVerses | null>(null);
-  const [activeReading, setActiveReading] = useState<ReadingKey>("gospel");
+  const [activeReading, setActiveReading] = useState<ReadingKey>(() => getDailyReading(new Date()));
   const [bibleText, setBibleText]       = useState<BibleText | null>(null);
   const [bibleLoading, setBibleLoading] = useState(false);
   const [memo, setMemo]                 = useState("");
